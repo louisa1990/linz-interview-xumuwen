@@ -1,0 +1,283 @@
+// Seat Reservation Platform Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// USER MANAGEMENT
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String    // In production, store hashed password only
+  role          UserRole  @default(USER)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  sessions      Session[]
+  reservations  Reservation[]
+  activityLogs  ActivityLog[]
+
+  @@index([email])
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ==========================================
+// SESSION MANAGEMENT
+// ==========================================
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  token        String    @unique
+  refreshToken String?   @unique
+  expires      DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
+  @@map("sessions")
+}
+
+// ==========================================
+// SEAT MANAGEMENT
+// ==========================================
+
+model Seat {
+  id             String     @id @default(cuid())
+  seatNumber     String     @unique
+  status         SeatStatus @default(AVAILABLE)
+  lockedBy       String?
+  lockedAt       DateTime?
+  lockExpiresAt  DateTime?
+  price          Float      @default(50.00)
+  currency       String     @default("USD")
+  description    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relations
+  reservations   Reservation[]
+  maintenanceLogs MaintenanceLog[]
+
+  @@index([status])
+  @@index([lockExpiresAt])
+  @@index([seatNumber])
+  @@map("seats")
+}
+
+enum SeatStatus {
+  AVAILABLE      // Seat is available for reservation
+  LOCKED         // Seat is temporarily locked during payment
+  RESERVED       // Seat has been successfully reserved
+  MAINTENANCE    // Seat is under maintenance (admin only)
+}
+
+// ==========================================
+// RESERVATION MANAGEMENT
+// ==========================================
+
+model Reservation {
+  id                 String              @id @default(cuid())
+  userId             String
+  seatId             String
+  status             ReservationStatus   @default(PENDING)
+  paymentId          String?             @unique
+  paymentStatus      PaymentStatus       @default(PENDING)
+  paymentAmount      Float?
+  currency           String?             @default("USD")
+  reservedAt         DateTime?
+  expiresAt          DateTime?
+  confirmationNumber String?             @unique
+  metadata           Json?               // Store additional reservation data
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  // Relations
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seat               Seat                @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([seatId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([confirmationNumber])
+  @@index([expiresAt])
+  @@map("reservations")
+}
+
+enum ReservationStatus {
+  PENDING         // Reservation created, awaiting payment
+  CONFIRMED       // Payment successful, reservation confirmed
+  CANCELLED       // Reservation cancelled by user or admin
+  EXPIRED         // Reservation expired (payment not completed)
+  REFUNDED        // Payment refunded, reservation cancelled
+}
+
+enum PaymentStatus {
+  PENDING         // Payment initiated, awaiting completion
+  COMPLETED       // Payment successful
+  FAILED          // Payment failed
+  EXPIRED         // Payment session expired
+  REFUNDED        // Payment refunded
+  CANCELLED       // Payment cancelled by user
+}
+
+// ==========================================
+// MAINTENANCE LOGS
+// ==========================================
+
+model MaintenanceLog {
+  id            String            @id @default(cuid())
+  seatId        String
+  action        MaintenanceAction
+  reason        String?
+  performedBy   String            // User ID of admin
+  createdAt     DateTime          @default(now())
+
+  // Relations
+  seat          Seat              @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@index([seatId])
+  @@index([createdAt])
+  @@map("maintenance_logs")
+}
+
+enum MaintenanceAction {
+  ENABLED         // Seat made available
+  DISABLED        // Seat put into maintenance
+  FORCE_RELEASED  // Seat lock forcibly released
+  PRICE_CHANGED   // Seat price changed
+}
+
+// ==========================================
+// ACTIVITY LOGS
+// ==========================================
+
+model ActivityLog {
+  id            String       @id @default(cuid())
+  userId        String?
+  action        ActionType
+  resourceType  ResourceType?
+  resourceId    String?
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+
+  // Relations
+  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+enum ActionType {
+  LOGIN
+  LOGOUT
+  SESSION_EXPIRED
+  SEAT_LOCKED
+  SEAT_UNLOCKED
+  SEAT_RESERVED
+  SEAT_RELEASED
+  PAYMENT_INITIATED
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  SEAT_MAINTENANCE_ENABLED
+  SEAT_MAINTENANCE_DISABLED
+  ADMIN_LOGIN
+  ADMIN_LOGOUT
+  FORCE_RELEASE_LOCK
+  MANUAL_RESERVATION
+}
+
+enum ResourceType {
+  SEAT
+  RESERVATION
+  USER
+  SESSION
+  PAYMENT
+}
+
+// ==========================================
+// SEAT QUEUE (for concurrency management)
+// ==========================================
+
+model SeatQueue {
+  id         String      @id @default(cuid())
+  seatId     String
+  userId     String
+  status     QueueStatus @default(WAITING)
+  createdAt  DateTime    @default(now())
+  notifiedAt DateTime?
+
+  @@index([seatId, status])
+  @@index([userId])
+  @@map("seat_queues")
+}
+
+enum QueueStatus {
+  WAITING
+  NOTIFIED
+  EXPIRED
+  PROCESSED
+}
+
+// ==========================================
+// IDEMPOTENCY KEYS (for duplicate request prevention)
+// ==========================================
+
+model IdempotencyKey {
+  id        String   @id @default(cuid())
+  key       String
+  userId    String
+  response  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([key, userId])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+// ==========================================
+// SYSTEM CONFIGURATION
+// ==========================================
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // User ID of admin who made the change
+
+  @@index([key])
+  @@map("system_configs")
+}
