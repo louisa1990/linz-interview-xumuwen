@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "lark-mcp"
+  ],
+  "enableAllProjectMcpServers": true
+}
