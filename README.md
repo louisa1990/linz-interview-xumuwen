@@ -1,431 +1,431 @@
-# Linkz - 座位预订平台
+# Linkz - Seat Reservation Platform
 
-一个功能完整的座位预订系统，支持用户认证、实时座位管理、支付集成和管理后台。
+A fully-featured seat reservation system with user authentication, real-time seat management, payment integration, and admin dashboard.
 
-## 功能特性
+## Features
 
-### 用户功能
-- **用户认证**：安全的登录/注销系统，支持会话管理
-- **座位浏览**：查看所有可用座位的实时状态
-- **座位预订**：选择并预订座位，支持座位锁定机制
-- **支付集成**：通过 Stripe 进行安全的支付处理
-- **我的预订**：查看和管理个人预订记录
-- **预订确认**：支付成功后获得预订确认和确认号
+### User Features
+- **User Authentication**: Secure login/logout system with session management
+- **Seat Browse**: View real-time status of all available seats
+- **Seat Reservation**: Select and reserve seats with seat locking mechanism
+- **Payment Integration**: Secure payment processing via Stripe
+- **My Reservations**: View and manage personal booking history
+- **Booking Confirmation**: Receive booking confirmation and confirmation number after successful payment
 
-### 管理功能
-- **管理后台**：专门的管理界面
-- **座位管理**：添加、编辑、删除座位，设置座位状态
-- **预订管理**：查看所有预订，处理退款
-- **座位维护**：将座位设置为维护状态
-- **数据统计**：查看平台使用情况统计
+### Admin Features
+- **Admin Dashboard**: Dedicated admin interface
+- **Seat Management**: Add, edit, delete seats, and set seat status
+- **Reservation Management**: View all bookings and process refunds
+- **Seat Maintenance**: Set seats to maintenance status
+- **Analytics**: View platform usage statistics
 
-### 技术特性
-- **并发控制**：座位锁定机制防止重复预订
-- **会话管理**：安全的会话处理和自动过期
-- **活动日志**：完整的用户操作审计跟踪
-- **幂等性控制**：防止重复请求
-- **队列管理**：座位并发请求队列处理
-- **Redis 集成**：速率限制和缓存支持
+### Technical Features
+- **Concurrency Control**: Seat locking mechanism prevents double bookings
+- **Session Management**: Secure session handling with automatic expiration
+- **Activity Logging**: Complete audit trail of user operations
+- **Idempotency Control**: Prevent duplicate requests
+- **Queue Management**: Handle concurrent seat requests with queue processing
+- **Redis Integration**: Rate limiting and caching support
 
-## 技术栈
+## Tech Stack
 
-- **前端框架**：Next.js 16 (App Router)
-- **UI 框架**：React 19
-- **样式**：Tailwind CSS 4
-- **数据库**：SQLite (开发) / PostgreSQL (生产)
-- **ORM**：Prisma
-- **认证**：NextAuth.js
-- **支付**：Stripe
-- **缓存**：Redis (IORedis)
-- **类型安全**：TypeScript
-- **会话管理**：JSON Web Tokens
-- **定时任务**：node-cron
+- **Frontend Framework**: Next.js 16 (App Router)
+- **UI Framework**: React 19
+- **Styling**: Tailwind CSS 4
+- **Database**: SQLite (development) / PostgreSQL (production)
+- **ORM**: Prisma
+- **Authentication**: NextAuth.js
+- **Payment**: Stripe
+- **Caching**: Redis (IORedis)
+- **Type Safety**: TypeScript
+- **Session Management**: JSON Web Tokens
+- **Scheduled Jobs**: node-cron
 
-## 快速开始
+## Quick Start
 
-### 前置要求
+### Prerequisites
 
 - Node.js 18+
-- npm 或 yarn
-- Stripe 账户 (用于支付功能)
+- npm or yarn
+- Stripe account (for payment functionality)
 
-## 详细安装指南
+## Detailed Installation Guide
 
-### 1. 系统准备
+### 1. System Preparation
 
-#### 安装 Node.js
+#### Install Node.js
 
-确保您的系统已安装 Node.js 18 或更高版本：
+Ensure your system has Node.js 18 or higher installed:
 
 ```bash
-# 检查 Node.js 版本
+# Check Node.js version
 node --version
 
-# 如果未安装，访问 https://nodejs.org/ 下载安装
-# 或使用 nvm (推荐)
+# If not installed, visit https://nodejs.org/ to download and install
+# Or use nvm (recommended)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 nvm install 18
 nvm use 18
 ```
 
-### 2. 克隆和安装项目
+### 2. Clone and Install Project
 
 ```bash
-# 克隆仓库
+# Clone repository
 git clone <repository-url>
-cd linz-interview-xumuwen
+cd linkz
 
-# 安装项目依赖
+# Install project dependencies
 npm install
 
-# 验证安装
+# Verify installation
 npm --version
 node --version
 ```
 
-### 3. 环境配置
+### 3. Environment Configuration
 
-#### 创建环境变量文件
+#### Create Environment Variables File
 
 ```bash
-# 复制环境变量模板
+# Copy environment variables template
 cp .env.example .env
 ```
 
-#### 编辑 .env 文件
+#### Edit .env File
 
-使用文本编辑器打开 `.env` 文件并配置以下变量：
+Open `.env` file in a text editor and configure the following variables:
 
 ```env
-# 数据库配置 (开发环境使用 SQLite)
+# Database configuration (SQLite for development)
 DATABASE_URL="file:./dev.db"
 
-# NextAuth 认证配置
+# NextAuth authentication configuration
 NEXTAUTH_SECRET="your-super-secret-key-min-32-chars"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Stripe 支付配置 (测试密钥)
+# Stripe payment configuration (test keys)
 STRIPE_SECRET_KEY="sk_test_your_stripe_secret_key"
 STRIPE_WEBHOOK_SECRET="whsec_your_webhook_secret"
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your_publishable_key"
 
-# 应用 URL
+# Application URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-#### 获取 Stripe 密钥
+#### Get Stripe Keys
 
-1. 访问 https://stripe.com/ 并注册账户
-2. 进入 Stripe Dashboard → 开发者 → API 密钥
-3. 复制测试密钥（以 `sk_test_` 和 `pk_test_` 开头）
-4. 配置 Webhook 端点获取 webhook secret
+1. Visit https://stripe.com/ and sign up for an account
+2. Go to Stripe Dashboard → Developers → API keys
+3. Copy test keys (starting with `sk_test_` and `pk_test_`)
+4. Configure Webhook endpoint to get webhook secret
 
-#### 生成安全的 NEXTAUTH_SECRET
+#### Generate Secure NEXTAUTH_SECRET
 
 ```bash
-# 使用 Node.js 生成
+# Generate using Node.js
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
-# 或使用 OpenSSL
+# Or use OpenSSL
 openssl rand -base64 32
 ```
 
-### 4. 数据库初始化
+### 4. Database Initialization
 
 ```bash
-# 生成 Prisma 客户端
+# Generate Prisma client
 npm run db:generate
 
-# 推送数据库模式到 SQLite
+# Push database schema to SQLite
 npm run db:push
 
-# 填充初始数据（管理员账户、测试座位等）
+# Seed initial data (admin account, test seats, etc.)
 npm run db:seed
 ```
 
-**数据库说明**:
-- 开发环境使用 SQLite (`file:./dev.db`)
-- 数据库文件位于项目根目录的 `prisma/dev.db`
-- 包含默认管理员和测试用户账户
+**Database Notes**:
+- Development environment uses SQLite (`file:./dev.db`)
+- Database file is located at `prisma/dev.db` in project root
+- Includes default admin and test user accounts
 
-### 5. 验证安装
+### 5. Verify Installation
 
 ```bash
-# 检查数据库是否正确初始化
+# Check if database is properly initialized
 ls -la prisma/dev.db
 
-# 使用 Prisma Studio 查看数据（可选）
+# View data using Prisma Studio (optional)
 npm run db:studio
 ```
 
-### 6. 启动开发服务器
+### 6. Start Development Server
 
 ```bash
-# 启动 Next.js 开发服务器
+# Start Next.js development server
 npm run dev
 ```
 
-服务器启动后，访问以下地址：
-- **用户界面**: http://localhost:3000
-- **管理后台**: http://localhost:3000/admin
-- **Prisma Studio**: http://localhost:5555 (运行 `npm run db:studio` 后)
+After the server starts, visit these URLs:
+- **User Interface**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3000/admin
+- **Prisma Studio**: http://localhost:5555 (after running `npm run db:studio`)
 
-### 7. 测试应用
+### 7. Test the Application
 
-#### 使用默认账户登录
+#### Login with Default Accounts
 
-**管理员账户**:
-- 邮箱: `admin@example.com`
-- 密码: `admin123`
+**Admin Account**:
+- Email: `admin@example.com`
+- Password: `admin123`
 
-**测试用户账户**:
-- 邮箱: `user@example.com`
-- 密码: `user123`
+**Test User Account**:
+- Email: `user@example.com`
+- Password: `user123`
 
-#### 功能测试清单
+#### Feature Testing Checklist
 
-- [ ] 用户登录/注销
-- [ ] 浏览座位列表
-- [ ] 选择和预订座位
-- [ ] 支付流程（需要 Stripe 配置）
-- [ ] 查看我的预订
-- [ ] 管理员后台访问
-- [ ] 座位管理（添加/编辑/删除）
-- [ ] 预订管理和退款
+- [ ] User login/logout
+- [ ] Browse seat list
+- [ ] Select and reserve seats
+- [ ] Payment flow (requires Stripe configuration)
+- [ ] View my reservations
+- [ ] Access admin dashboard
+- [ ] Seat management (add/edit/delete)
+- [ ] Reservation management and refunds
 
-## 环境配置指南
+## Environment Configuration Guide
 
-### 开发环境配置
+### Development Environment Configuration
 
-开发环境使用以下默认配置：
+Development environment uses the following default configuration:
 
-**数据库**: SQLite
+**Database**: SQLite
 ```env
 DATABASE_URL="file:./dev.db"
 ```
 
-**优势**:
-- 无需额外安装数据库服务
-- 快速启动和测试
-- 数据存储在本地文件中
+**Advantages**:
+- No need to install additional database services
+- Quick startup and testing
+- Data stored in local files
 
-**Redis** (可选):
+**Redis** (optional):
 ```env
 REDIS_URL="redis://localhost:6379"
 ```
 
-如未安装 Redis，应用仍可正常运行，但会失去缓存和速率限制功能。
+If Redis is not installed, the application will still run normally, but will lose caching and rate limiting functionality.
 
-### 生产环境配置
+### Production Environment Configuration
 
-生产环境建议使用以下配置：
+Production environment is recommended to use the following configuration:
 
-**数据库**: PostgreSQL
+**Database**: PostgreSQL
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/seat_reservation?schema=public"
 ```
 
-**切换到 PostgreSQL**:
-1. 安装 PostgreSQL
-2. 创建数据库和用户
-3. 更新 `.env` 中的 `DATABASE_URL`
-4. 修改 `prisma/schema.prisma` 中的 provider 为 "postgresql"
-5. 运行迁移：`npm run db:migrate`
+**Switch to PostgreSQL**:
+1. Install PostgreSQL
+2. Create database and user
+3. Update `DATABASE_URL` in `.env`
+4. Change provider in `prisma/schema.prisma` to "postgresql"
+5. Run migration: `npm run db:migrate`
 
-**Stripe 生产密钥**:
+**Stripe Production Keys**:
 ```env
 STRIPE_SECRET_KEY="sk_live_your_live_key"
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_your_live_key"
 ```
 
-**安全配置**:
-- 使用强随机 `NEXTAUTH_SECRET`
-- 启用 HTTPS
-- 配置 CORS 策略
+**Security Configuration**:
+- Use strong random `NEXTAUTH_SECRET`
+- Enable HTTPS
+- Configure CORS policy
 
-### 环境变量详解
+### Environment Variables Reference
 
-| 变量名 | 必需 | 说明 | 示例 |
-|--------|------|------|------|
-| `DATABASE_URL` | ✅ | 数据库连接字符串 | `file:./dev.db` |
-| `NEXTAUTH_SECRET` | ✅ | 认证密钥，最少 32 字符 | 随机字符串 |
-| `NEXTAUTH_URL` | ✅ | 应用完整 URL | `http://localhost:3000` |
-| `STRIPE_SECRET_KEY` | ✅ | Stripe 私钥 | `sk_test_...` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ | Stripe 公钥 | `pk_test_...` |
-| `STRIPE_WEBHOOK_SECRET` | ⚠️ | Stripe Webhook 密钥 | `whsec_...` |
-| `NEXT_PUBLIC_APP_URL` | ✅ | 公开应用 URL | `http://localhost:3000` |
+| Variable Name | Required | Description | Example |
+|--------------|----------|-------------|---------|
+| `DATABASE_URL` | ✅ | Database connection string | `file:./dev.db` |
+| `NEXTAUTH_SECRET` | ✅ | Authentication secret, minimum 32 characters | Random string |
+| `NEXTAUTH_URL` | ✅ | Full application URL | `http://localhost:3000` |
+| `STRIPE_SECRET_KEY` | ✅ | Stripe secret key | `sk_test_...` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ | Stripe public key | `pk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | ⚠️ | Stripe webhook secret | `whsec_...` |
+| `NEXT_PUBLIC_APP_URL` | ✅ | Public application URL | `http://localhost:3000` |
 
-✅ = 必需，⚠️ = 可选但推荐
+✅ = Required, ⚠️ = Optional but recommended
 
-## 默认账户
+## Default Accounts
 
-### 管理员账户
-- 邮箱：`admin@example.com`
-- 密码：`admin123`
+### Admin Account
+- Email: `admin@example.com`
+- Password: `admin123`
 
-### 测试用户账户
-- 邮箱：`user@example.com`
-- 密码：`user123`
+### Test User Account
+- Email: `user@example.com`
+- Password: `user123`
 
-## 项目结构
+## Project Structure
 
 ```
 linkz/
-├── app/                          # Next.js App Router 页面
-│   ├── api/                      # API 路由
-│   │   ├── auth/                 # 认证相关
-│   │   ├── seats/                # 座位管理
-│   │   ├── reservations/         # 预订管理
-│   │   ├── payment/              # 支付处理
+├── app/                          # Next.js App Router pages
+│   ├── api/                      # API routes
+│   │   ├── auth/                 # Authentication related
+│   │   ├── seats/                # Seat management
+│   │   ├── reservations/         # Reservation management
+│   │   ├── payment/              # Payment processing
 │   │   ├── webhook/              # Stripe Webhooks
-│   │   └── admin/                # 管理功能
-│   ├── admin/                    # 管理后台页面
-│   ├── payment/                  # 支付页面
-│   ├── reservation/              # 预订页面
-│   ├── seats/                    # 座位浏览页面
-│   ├── login/                    # 登录页面
-│   └── my-reservations/          # 我的预订页面
-├── prisma/                       # 数据库相关
-│   ├── schema.prisma             # 数据库模式
-│   ├── seed.ts                   # 数据库种子
-│   └── dev.db                    # SQLite 数据库
-├── lib/                          # 工具函数和库
-│   ├── auth.ts                   # 认证配置
-│   ├── db.ts                     # Prisma 客户端
-│   ├── redis.ts                  # Redis 配置
-│   └── stripe.ts                 # Stripe 配置
-└── public/                       # 静态资源
+│   │   └── admin/                # Admin functionality
+│   ├── admin/                    # Admin dashboard pages
+│   ├── payment/                  # Payment pages
+│   ├── reservation/              # Reservation pages
+│   ├── seats/                    # Seat browsing pages
+│   ├── login/                    # Login page
+│   └── my-reservations/          # My reservations page
+├── prisma/                       # Database related
+│   ├── schema.prisma             # Database schema
+│   ├── seed.ts                   # Database seed
+│   └── dev.db                    # SQLite database
+├── lib/                          # Utility functions and libraries
+│   ├── auth.ts                   # Authentication configuration
+│   ├── db.ts                     # Prisma client
+│   ├── redis.ts                  # Redis configuration
+│   └── stripe.ts                 # Stripe configuration
+└── public/                       # Static assets
 
 ```
 
-## 可用脚本和辅助工具
+## Available Scripts and Utilities
 
-### 开发脚本
+### Development Scripts
 
 ```bash
-npm run dev          # 启动开发服务器 (http://localhost:3000)
-npm run build        # 构建生产版本
-npm run start        # 启动生产服务器
-npm run lint         # 运行 ESLint 检查
+npm run dev          # Start development server (http://localhost:3000)
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint checks
 ```
 
-### 数据库脚本
+### Database Scripts
 
 ```bash
-npm run db:generate  # 生成 Prisma 客户端
-npm run db:push      # 推送模式到数据库 (开发环境，无迁移文件)
-npm run db:migrate   # 运行数据库迁移 (生产环境，创建迁移文件)
-npm run db:seed      # 填充种子数据 (创建默认账户和座位)
-npm run db:studio    # 打开 Prisma Studio (数据库可视化工具)
+npm run db:generate  # Generate Prisma client
+npm run db:push      # Push schema to database (development, no migration files)
+npm run db:migrate   # Run database migration (production, create migration files)
+npm run db:seed      # Seed database with initial data (create default accounts and seats)
+npm run db:studio    # Open Prisma Studio (database visualizer)
 ```
 
-**数据库脚本说明**:
+**Database Script Explanation**:
 
-- `db:generate`: 修改 `prisma/schema.prisma` 后必须运行
-- `db:push`: 快速将模式更改推送到数据库，适合开发环境
-- `db:migrate`: 创建迁移文件，适合生产环境和版本控制
-- `db:seed`: 填充测试数据，包含管理员账户和示例座位
-- `db:studio`: 在浏览器中可视化编辑数据库数据
+- `db:generate`: Must run after modifying `prisma/schema.prisma`
+- `db:push`: Quickly push schema changes to database, suitable for development
+- `db:migrate`: Create migration files, suitable for production and version control
+- `db:seed`: Populate test data, including admin account and sample seats
+- `db:studio`: Visually edit database data in browser
 
-### 环境变量详细说明
+### Environment Variables Detail
 
 #### DATABASE_URL
-数据库连接字符串，支持SQLite和PostgreSQL：
+Database connection string, supporting SQLite and PostgreSQL:
 
-**开发环境（SQLite）**:
+**Development Environment (SQLite)**:
 ```env
 DATABASE_URL="file:./dev.db"
 ```
 
-**生产环境（PostgreSQL）**:
+**Production Environment (PostgreSQL)**:
 ```env
-DATABASE_URL="postgresql://用户名:密码@主机:端口/数据库名?schema=public"
-# 示例: DATABASE_URL="postgresql://linkz:user:pass123@localhost:5432/seat_reservation?schema=public"
+DATABASE_URL="postgresql://username:password@host:port/database_name?schema=public"
+# Example: DATABASE_URL="postgresql://linkz_user:pass123@localhost:5432/seat_reservation?schema=public"
 ```
 
 #### NEXTAUTH_SECRET
-认证系统的安全密钥，必须是至少32字符的随机字符串：
+Security key for authentication system, must be a random string of at least 32 characters:
 
 ```bash
-# 生成安全密钥的方法
+# Generate secure key method
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
 #### NEXTAUTH_URL vs NEXT_PUBLIC_APP_URL
-- `NEXTAUTH_URL`: 认证系统内部使用的URL
-- `NEXT_PUBLIC_APP_URL`: 前端公开访问的URL
+- `NEXTAUTH_URL`: URL used internally by authentication system
+- `NEXT_PUBLIC_APP_URL`: Publicly accessible frontend URL
 
-开发环境通常相同：
+Usually the same in development:
 ```env
 NEXTAUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-#### Stripe配置
-需要三个Stripe相关的密钥：
+#### Stripe Configuration
+Requires three Stripe-related keys:
 
-1. **STRIPE_SECRET_KEY**: 以`sk_test_`(测试)或`sk_live_`(生产)开头
-2. **NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY**: 以`pk_test_`(测试)或`pk_live_`(生产)开头
-3. **STRIPE_WEBHOOK_SECRET**: 以`whsec_`开头，用于验证webhook
+1. **STRIPE_SECRET_KEY**: Starts with `sk_test_`(test) or `sk_live_`(production)
+2. **NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY**: Starts with `pk_test_`(test) or `pk_live_`(production)
+3. **STRIPE_WEBHOOK_SECRET**: Starts with `whsec_`, used to verify webhooks
 
-**获取Stripe密钥**:
-1. 访问 https://stripe.com/ 注册账户
-2. Dashboard → 开发者 → API密钥
-3. 复制对应的密钥到.env文件
+**Get Stripe Keys**:
+1. Visit https://stripe.com/ to register account
+2. Dashboard → Developers → API keys
+3. Copy corresponding keys to .env file
 
-### 系统要求和安装指南
+### System Requirements and Installation Guide
 
-#### 最低系统要求
-- **Node.js**: 18.0 或更高版本
-- **内存**: 4GB RAM（推荐8GB）
-- **存储**: 10GB可用空间
+#### Minimum System Requirements
+- **Node.js**: 18.0 or higher
+- **Memory**: 4GB RAM (8GB recommended)
+- **Storage**: 10GB available space
 
-#### 安装Node.js（如未安装）
+#### Install Node.js (if not installed)
 
-**检查当前版本**:
+**Check current version**:
 ```bash
 node --version
 ```
 
-**安装Node.js 18**:
+**Install Node.js 18**:
 
-方法1 - 官方网站: 访问 https://nodejs.org/ 下载LTS版本
+Method 1 - Official website: Visit https://nodejs.org/ to download LTS version
 
-方法2 - 使用nvm (推荐):
+Method 2 - Using nvm (recommended):
 ```bash
-# 安装nvm
+# Install nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 
-# 重新加载终端
+# Reload terminal
 source ~/.bashrc
 
-# 安装Node.js 18
+# Install Node.js 18
 nvm install 18
 nvm use 18
 ```
 
-### 生产环境快速部署
+### Production Environment Quick Deployment
 
-#### 1. 服务器准备
+#### 1. Server Preparation
 ```bash
-# 更新系统
+# Update system
 sudo apt-get update && sudo apt-get upgrade -y
 
-# 安装必要工具
+# Install necessary tools
 sudo apt-get install -y build-essential git curl
 ```
 
-#### 2. 安装PostgreSQL（生产数据库）
+#### 2. Install PostgreSQL (production database)
 ```bash
-# 安装PostgreSQL
+# Install PostgreSQL
 sudo apt-get install -y postgresql postgresql-contrib
 sudo systemctl start postgresql
 
-# 创建数据库和用户
+# Create database and user
 sudo -u postgres psql
 ```
 
-在PostgreSQL提示符下：
+In PostgreSQL prompt:
 ```sql
 CREATE USER linkz_user WITH PASSWORD 'your_password';
 CREATE DATABASE seat_reservation OWNER linkz_user;
@@ -433,20 +433,20 @@ GRANT ALL PRIVILEGES ON DATABASE seat_reservation TO linkz_user;
 \q
 ```
 
-#### 3. 部署应用
+#### 3. Deploy Application
 ```bash
-# 克隆代码到服务器
+# Clone code to server
 git clone <repository-url> /var/www/linkz
 cd /var/www/linkz
 
-# 安装依赖
+# Install dependencies
 npm install --production
 
-# 配置生产环境变量
+# Configure production environment variables
 nano .env
 ```
 
-生产环境`.env`示例：
+Production environment `.env` example:
 ```env
 DATABASE_URL="postgresql://linkz_user:password@localhost:5432/seat_reservation?schema=public"
 NEXTAUTH_SECRET="your-production-secret-key-at-least-32-characters"
@@ -458,213 +458,213 @@ NEXT_PUBLIC_APP_URL="https://your-domain.com"
 NODE_ENV="production"
 ```
 
-初始化数据库：
+Initialize database:
 ```bash
 npm run db:generate
 npm run db:migrate
-npm run db:seed  # 仅首次部署
+npm run db:seed  # First deployment only
 ```
 
-#### 4. 使用PM2管理进程
+#### 4. Process Management with PM2
 ```bash
-# 安装PM2
+# Install PM2
 npm install -g pm2
 
-# 构建应用
+# Build application
 npm run build
 
-# 启动应用
+# Start application
 pm2 start npm --name "linkz" -- start
 
-# 设置开机自启
+# Enable auto-start on boot
 pm2 startup
 pm2 save
 
-# 查看状态
+# View status
 pm2 status
 pm2 logs linkz
 ```
 
-### 故障排除
+### Troubleshooting
 
-#### 常见问题解决
+#### Common Issue Resolution
 
-**1. 端口被占用**
+**1. Port Already in Use**
 ```bash
-# 查找占用端口的进程
+# Find process occupying port
 lsof -i :3000
-# 终止进程
+# Kill process
 kill -9 <PID>
 ```
 
-**2. 数据库连接失败**
+**2. Database Connection Failed**
 ```bash
-# 检查PostgreSQL状态
+# Check PostgreSQL status
 sudo systemctl status postgresql
-# 启动服务
+# Start service
 sudo systemctl start postgresql
 ```
 
-**3. 依赖安装失败**
+**3. Dependency Installation Failed**
 ```bash
-# 清除缓存重新安装
+# Clear cache and reinstall
 npm cache clean --force
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-**4. 权限错误**
+**4. Permission Errors**
 ```bash
-# 修复文件权限
+# Fix file permissions
 sudo chown -R $USER:$USER /path/to/project
 chmod -R 755 /path/to/project
 ```
 
-**5. 查看详细日志**
+**5. View Detailed Logs**
 ```bash
-# 开发环境详细日志
+# Development environment detailed logs
 DEBUG=* npm run dev
 
-# PM2日志
+# PM2 logs
 pm2 logs linkz --lines 100
 ```
 
-### 日常开发工作流
+### Daily Development Workflow
 
 ```bash
-# 1. 启动开发环境
+# 1. Start development environment
 npm run dev
 
-# 2. 在另一个终端启动 Redis (可选)
+# 2. Start Redis in another terminal (optional)
 redis-server
 
-# 3. 修改数据库模式后
-# 编辑 prisma/schema.prisma
+# 3. After modifying database schema
+# Edit prisma/schema.prisma
 npm run db:generate
 npm run db:push
 
-# 4. 重新填充数据
+# 4. Re-populate data
 npm run db:seed
 
-# 5. 查看数据库
+# 5. View database
 npm run db:studio
 
-# 6. 构建和测试
+# 6. Build and test
 npm run build
 npm run start
 ```
 
-### 快速修复脚本
+### Quick Fix Scripts
 
 ```bash
-# 清除依赖重新安装
+# Clean dependencies and reinstall
 rm -rf node_modules package-lock.json
 npm install
 
-# 重新生成数据库
+# Regenerate database
 rm prisma/dev.db
 npm run db:generate
 npm run db:push
 npm run db:seed
 
-# 检查端口占用
+# Check port occupation
 lsof -i :3000
 
-# 查看日志
+# View logs
 npm run dev -- --verbose
 ```
 
-## API 端点
+## API Endpoints
 
-### 公开端点
-- `POST /api/auth/[...nextauth]` - NextAuth 认证
-- `GET /api/seats` - 获取座位列表
-- `GET /api/seats/[id]` - 获取单个座位信息
-- `POST /api/reservations` - 创建预订
+### Public Endpoints
+- `POST /api/auth/[...nextauth]` - NextAuth authentication
+- `GET /api/seats` - Get seat list
+- `GET /api/seats/[id]` - Get single seat information
+- `POST /api/reservations` - Create reservation
 
-### 支付端点
-- `POST /api/payment/create-checkout` - 创建 Stripe Checkout 会话
-- `GET /api/payment/status/[sessionId]` - 检查支付状态
-- `POST /api/webhook/stripe` - Stripe webhook 处理
+### Payment Endpoints
+- `POST /api/payment/create-checkout` - Create Stripe Checkout session
+- `GET /api/payment/status/[sessionId]` - Check payment status
+- `POST /api/webhook/stripe` - Stripe webhook handler
 
-### 管理端点
-- `GET /api/admin/dashboard` - 获取管理后台统计数据
-- `GET /api/admin/seats` - 获取所有座位（管理）
-- `POST /api/admin/seats` - 创建新座位
-- `PUT /api/admin/seats/[id]` - 更新座位信息
-- `GET /api/admin/reservations` - 获取所有预订（管理）
-- `POST /api/admin/reservations/[id]/refund` - 处理退款
+### Admin Endpoints
+- `GET /api/admin/dashboard` - Get admin dashboard statistics
+- `GET /api/admin/seats` - Get all seats (admin)
+- `POST /api/admin/seats` - Create new seat
+- `PUT /api/admin/seats/[id]` - Update seat information
+- `GET /api/admin/reservations` - Get all reservations (admin)
+- `POST /api/admin/reservations/[id]/refund` - Process refund
 
-## 数据库模式
+## Database Schema
 
-### 核心模型
-- **User** - 用户信息和认证
-- **Session** - 会话管理
-- **Seat** - 座位信息
-- **Reservation** - 预订记录
-- **MaintenanceLog** - 维护日志
-- **ActivityLog** - 活动日志
+### Core Models
+- **User** - User information and authentication
+- **Session** - Session management
+- **Seat** - Seat information
+- **Reservation** - Reservation records
+- **MaintenanceLog** - Maintenance logs
+- **ActivityLog** - Activity logs
 
-### 枚举类型
-- **UserRole** - 用户角色（USER, ADMIN）
-- **SeatStatus** - 座位状态（AVAILABLE, LOCKED, RESERVED, MAINTENANCE）
-- **ReservationStatus** - 预订状态（PENDING, CONFIRMED, CANCELLED, EXPIRED, REFUNDED）
-- **PaymentStatus** - 支付状态（PENDING, COMPLETED, FAILED, EXPIRED, REFUNDED, CANCELLED）
+### Enum Types
+- **UserRole** - User roles (USER, ADMIN)
+- **SeatStatus** - Seat status (AVAILABLE, LOCKED, RESERVED, MAINTENANCE)
+- **ReservationStatus** - Reservation status (PENDING, CONFIRMED, CANCELLED, EXPIRED, REFUNDED)
+- **PaymentStatus** - Payment status (PENDING, COMPLETED, FAILED, EXPIRED, REFUNDED, CANCELLED)
 
-## 部署
+## Deployment
 
-### Vercel 部署
-1. 连接 GitHub 仓库到 Vercel
-2. 配置环境变量
-3. 部署（自动）
+### Vercel Deployment
+1. Connect GitHub repository to Vercel
+2. Configure environment variables
+3. Deploy (automatic)
 
-### 手动部署
+### Manual Deployment
 ```bash
 npm run build
 npm run start
 ```
 
-## 生产环境注意事项
+## Production Environment Considerations
 
-1. **安全性**
-   - 修改所有默认密码
-   - 使用强随机密钥作为 `NEXTAUTH_SECRET`
-   - 配置 CORS 策略
-   - 启用 HTTPS
+1. **Security**
+   - Change all default passwords
+   - Use strong random keys for `NEXTAUTH_SECRET`
+   - Configure CORS policy
+   - Enable HTTPS
 
-2. **数据库**
-   - 使用 PostgreSQL 而非 SQLite
-   - 配置数据库连接池
-   - 定期备份数据
+2. **Database**
+   - Use PostgreSQL instead of SQLite
+   - Configure database connection pool
+   - Regular data backups
 
 3. **Redis**
-   - 配置 Redis 持久化
-   - 设置内存限制
-   - 启用 Redis 认证
+   - Configure Redis persistence
+   - Set memory limits
+   - Enable Redis authentication
 
 4. **Stripe**
-   - 使用生产环境密钥
-   - 配置 webhook 端点
-   - 设置正确的货币和价格
+   - Use production environment keys
+   - Configure webhook endpoints
+   - Set correct currency and pricing
 
-## 贡献指南
+## Contributing
 
-欢迎贡献！请遵循以下步骤：
+Contributions are welcome! Please follow these steps:
 
-1. Fork 项目
-2. 创建功能分支
-3. 提交更改
-4. 推送到分支
-5. 创建 Pull Request
+1. Fork the project
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
 
-## 许可证
+## License
 
 MIT License
 
-## 支持
+## Support
 
-如有问题或建议，请创建 Issue 或联系维护团队。
+For questions or suggestions, please create an Issue or contact the maintenance team.
 
 ---
 
-**最后更新**: 2025年1月
+**Last Updated**: January 2025
