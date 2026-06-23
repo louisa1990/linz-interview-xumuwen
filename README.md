@@ -27,6 +27,79 @@ A fully-featured seat reservation system with user authentication, real-time sea
 - **Queue Management**: Handle concurrent seat requests with queue processing
 - **Redis Integration**: Rate limiting and caching support
 
+## Architecture Design
+
+### System Architecture
+```
+Presentation Layer (Next.js App Router)
+    ↓
+Business Logic Layer (TypeScript Services)
+    ↓
+Data Access Layer (Prisma ORM)
+    ↓
+Infrastructure Layer (PostgreSQL + Redis + Stripe)
+```
+
+### Core Design Patterns
+
+**1. Concurrency Control**
+- Seat state machine: `AVAILABLE → LOCKED → RESERVED → CONFIRMED`
+- Redis distributed locks prevent double bookings
+- Scheduled cleanup of expired locks (15min timeout)
+
+**2. Session Management**
+- JWT stateless authentication
+- Redis session storage (24h expiration)
+- Automatic refresh token rotation
+
+**3. Payment Integration**
+- Stripe Checkout secure payment flow
+- Async payment confirmation via webhooks
+- Idempotency keys prevent duplicate charges
+
+**4. Rate Limiting**
+- Redis Token Bucket algorithm
+- Per-user/per-endpoint limits (100 req/min)
+- Protection against seat booking abuse
+
+### Key Technical Decisions
+
+| Technology | Rationale | Benefits |
+|------------|-----------|----------|
+| Next.js 16 App Router | Server-first architecture | Reduced client JS bundle, faster initial load |
+| Prisma ORM | Type-safe database access | Auto-generated types, database agnostic |
+| Redis | High-performance caching & locking | Seat locking, session storage, rate limiting |
+| Stripe | PCI-compliant payment processing | Hosted card data, simplified compliance |
+
+### Database Schema
+
+**Core Relationships**:
+```
+User ←─ Reservation ── Seat
+  ↓                    ↓
+Session           MaintenanceLog
+  ↓
+ActivityLog (audit trail)
+```
+
+**Key Constraints**:
+- Unique constraint: `confirmation_number` (payment tracking)
+- Foreign key constraints for referential integrity
+- Optimized indexes: `Reservation.status + createdAt`, `Seat.status + row`
+
+### Performance & Security
+
+**Performance**:
+- Redis caching for hot data (seat lists, user sessions)
+- Composite indexes + connection pooling + N+1 prevention
+- Automatic code splitting + image optimization
+
+**Security**:
+- NextAuth.js + RBAC (USER/ADMIN roles)
+- TLS 1.3 + bcrypt password hashing
+- Stripe handles all card data (PCI compliant)
+- IP blocking + per-user request limits
+
 ## Tech Stack
 
 - **Frontend Framework**: Next.js 16 (App Router)
