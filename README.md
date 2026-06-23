@@ -73,7 +73,7 @@ nvm use 18
 ```bash
 # Clone repository
 git clone <repository-url>
-cd linkz
+cd <repository-url>
 
 # Install project dependencies
 npm install
